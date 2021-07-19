@@ -1,0 +1,51 @@
+# -*- coding: UTF-8 -*-
+import binascii, os, struct, codecs, sys
+
+with open("sample.zip", 'rb') as f:
+    filesize = os.path.getsize("sample.zip")
+    print(str(filesize) + " bytes")
+    print("================Local File Header(0x504B0304)=================")
+    pointer = 0
+    count = 0
+
+    while pointer < filesize:
+        seek_sig = f.read(1)
+        pointer = pointer + 1
+        if seek_sig.hex() == '50':
+            seek_sig = f.read(3)
+            pointer = pointer + 3
+            if seek_sig.hex() == '4b0304':
+                count = count + 1
+                lfh = []
+                lfh.append(f.read(2))  # 0. Version
+                lfh.append(f.read(2))  # 1. Flags
+                lfh.append(f.read(2))  # 2. Compression method
+                lfh.append(f.read(2))  # 3. File modificaiton time
+                lfh.append(f.read(2))  # 4. File modificaiton date
+                lfh.append(f.read(4))  # 5. Crc-32 checksum
+                lfh.append(f.read(4))  # 6. Compressed Size
+                lfh.append(f.read(4))  # 7. UnCompressed Size
+                lfh.append(f.read(2))  # 8. File name length
+                lfh.append(f.read(2))  # 9. Extra name length
+
+                for i in range(0, 10):
+                    lfh[i] = int.from_bytes(lfh[i], byteorder='little')
+
+                lfh.append(f.read(int(lfh[8])))  # 12. filename
+                print(str(count) + ".Filename: " + str(lfh[10], 'cp949'))
+                print(" a. Version: " + str(lfh[0]))
+                print(" a. Flags: " + str(lfh[1]))
+                print(" b. Compression method: " + str(lfh[2]))
+                print(" c. File modificaiton time: " + str(lfh[3]))
+                print(" d. File modificaiton date: " + str(lfh[4]))
+                print(" e. Crc-32 checksum: " + str(lfh[5]))
+                print(" f. Compressed Size: " + str(lfh[6]))
+                print(" g. UnCompressed Size: " + str(lfh[7]))
+                print(" h. File name length: " + str(lfh[8]))
+                print(" i. Extra name length: " + str(lfh[9]) + "\n")
+
+        elif len(seek_sig) < 1:
+            break
+
+    print("Total File : " + str(count))
+    print(lfh, 'cp949')
